@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ёлочка — для меня</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:"Segoe UI",system-ui,sans-serif;color:#23201a;background:#f6f1e6;display:flex;flex-direction:column;height:100vh;overflow:hidden}
+
+  header{background:linear-gradient(180deg,#0c3b1f,#14532d);color:#fff;padding:20px 16px 26px;text-align:center;position:relative;flex:none}
+  .balls{position:relative;height:62px;margin-bottom:4px}
+  .ball{position:absolute;bottom:0;border-radius:50%;background:radial-gradient(circle at 32% 28%,#ffffff88,transparent 40%),radial-gradient(circle at 50% 45%,#ffffff33,transparent 60%),var(--c);box-shadow:inset -5px -7px 12px rgba(0,0,0,.28),0 4px 8px rgba(0,0,0,.2);animation:sway 3s ease-in-out infinite;transform-origin:50% -120%}
+  .ball::after{content:"";position:absolute;left:50%;top:-8px;transform:translateX(-50%);width:3px;height:8px;background:#caa227;border-radius:2px}
+  @keyframes sway{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
+  header h1{font-size:clamp(1.8rem,6vw,2.6rem);letter-spacing:.04em;text-shadow:0 2px 10px rgba(0,0,0,.35)}
+  header .badge{display:inline-block;margin-top:6px;font-size:.72rem;font-weight:800;background:#b91c1c;color:#fff;padding:3px 10px;border-radius:999px;letter-spacing:.04em}
+
+  main{flex:1;display:flex;flex-direction:column;min-height:0}
+  .chatwrap{max-width:640px;width:100%;margin:0 auto;flex:1;display:flex;flex-direction:column;min-height:0}
+
+  .chat-head{background:#fff;border:1px solid #e6dcc4;border-bottom:none;border-radius:16px 16px 0 0;padding:12px 14px;display:flex;align-items:center;gap:10px;flex:none}
+  .chat-head .dot{width:10px;height:10px;border-radius:50%;background:#22c55e}
+  .chat-head b{color:#14532d}
+  .chat-head small{display:block;color:#8a8172;font-size:.75rem}
+  .chat-head .navbtn{margin-left:auto;border:none;background:#14532d;color:#fff;font-weight:800;padding:7px 12px;border-radius:10px;cursor:pointer;font-size:.82rem}
+  .chat-head .navbtn:hover{background:#0c3b1f}
+  .chat-head .navbtn.alt{background:#b91c1c}
+  .chat-head .navbtn.alt:hover{background:#7f1414}
+
+  .chat-msg{flex:1;overflow-y:auto;background:#fbf7ee;border:1px solid #e6dcc4;border-top:none;border-bottom:none;padding:16px;display:flex;flex-direction:column;gap:12px;min-height:0}
+  .bubble{max-width:88%;padding:10px 13px;border-radius:14px;font-size:.95rem;line-height:1.45;animation:fade .2s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1}}
+  .bot{background:#eef3ea;align-self:flex-start;border-bottom-left-radius:4px}
+  .user{background:#14532d;color:#fff;align-self:flex-end;border-bottom-right-radius:4px}
+  .bubble b{color:inherit}
+
+  .pick{background:#fff;border:1px solid #e2d6b8;border-radius:14px;padding:8px;display:flex;gap:10px;align-items:center;cursor:pointer;text-align:left;width:100%;font-size:14px;color:#23201a;font-family:inherit}
+  .pick:hover{border-color:#caa227;background:#fffaf0}
+  .pick img{width:50px;height:50px;border-radius:10px;object-fit:cover;flex:none;background:#efe9db}
+  .pick .ti{flex:1}
+  .pick .ti b{display:block;color:#14532d;font-size:15px}
+  .pick .ti sm{color:#7a7163;font-size:12px}
+  .pick .pc{font-weight:800;color:#b91c1c;flex:none}
+  .pick.added{border-color:#14532d;background:#eff6ee}
+  .pick.added .pc{color:#14532d}
+
+  .actions{display:flex;flex-direction:column;gap:8px}
+  .btn{border:none;border-radius:12px;padding:12px 14px;font-weight:800;font-size:15px;cursor:pointer;font-family:inherit}
+  .btn.primary{background:#14532d;color:#fff}
+  .btn.primary:hover{background:#0c3b1f}
+  .btn.ghost{background:#fff;border:1.5px solid #d9d0ba;color:#23201a}
+  .btn.ghost:hover{border-color:#14532d}
+  .btn.red{background:#b91c1c;color:#fff}
+  .btn.red:hover{background:#7f1414}
+
+  .summary{background:#eef3ea;border-radius:12px;padding:12px 14px;font-size:14px}
+  .summary .ln{display:flex;justify-content:space-between;padding:2px 0}
+  .summary .total{display:flex;justify-content:space-between;font-weight:800;color:#b91c1c;font-size:16px;border-top:1px dashed #bfae8f;margin-top:6px;padding-top:6px}
+
+  .chat-input{flex:none;display:flex;gap:8px;background:#fff;border:1px solid #e6dcc4;border-top:none;border-radius:0 0 16px 16px;padding:12px}
+  .chat-input input{flex:1;border:1.5px solid #d9d0ba;border-radius:10px;padding:11px;font-size:15px;outline:none}
+  .chat-input input:focus{border-color:#14532d}
+  .chat-input button{border:none;background:#14532d;color:#fff;border-radius:10px;padding:0 20px;font-weight:800;cursor:pointer}
+  .chat-input button:hover{background:#0c3b1f}
+
+  /* ---------- заказы (панель продавца) ---------- */
+  .admin{display:none;height:100%}
+  .admin.open{display:flex;flex-direction:column}
+  .orders-list{flex:1;overflow-y:auto;background:#fbf7ee;padding:14px;display:flex;flex-direction:column;gap:12px}
+  .order-card{background:#fff;border:1px solid #e6dcc4;border-radius:14px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+  .order-card .oc-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .order-card .oc-num{font-weight:800;color:#14532d;font-size:15px}
+  .order-card .oc-time{font-size:.75rem;color:#8a8172}
+  .order-card .oc-addr{background:#eff6ee;border-radius:10px;padding:8px 10px;margin:8px 0;font-size:14px}
+  .order-card .oc-addr b{color:#14532d}
+  .order-card .oc-list{font-size:14px;line-height:1.5;margin-bottom:8px}
+  .order-card .oc-total{font-weight:800;color:#b91c1c;font-size:16px;margin-bottom:10px}
+  .order-card .oc-actions{display:flex;flex-direction:column;gap:8px}
+  .order-card .status{font-size:.78rem;font-weight:800;text-align:center;padding:6px 10px;border-radius:999px}
+  .order-card .status.new{background:#fef3c7;color:#92400e}
+  .order-card .status.done{background:#eff6ee;color:#14532d}
+
+  .empty{text-align:center;color:#8a8172;padding:40px 20px;font-size:.95rem}
+
+  .modal-wrap{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:60;padding:20px}
+  .modal-wrap.open{display:flex}
+  .modal{background:#fff;border-radius:16px;padding:22px;width:100%;max-width:340px;text-align:center}
+  .modal h3{margin-bottom:12px;color:#14532d}
+  .modal input{width:100%;border:1.5px solid #d9d0ba;border-radius:10px;padding:12px;font-size:16px;text-align:center;outline:none;margin-bottom:12px}
+  .modal input:focus{border-color:#14532d}
+  .modal .err{color:#b91c1c;font-size:.85rem;font-weight:700;margin-bottom:8px;min-height:1em;display:none}
+  .modal .err.show{display:block}
+  .modal .mrow{display:flex;gap:8px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="balls" id="balls"></div>
+  <h1>Ёлочка</h1>
+  <div class="badge">✔ рабочая версия продавца</div>
+</header>
+
+<main>
+  <!-- ЧАТ ПОКУПАТЕЛЯ -->
+  <div class="chatwrap" id="buyerPanel">
+    <div class="chat-head">
+      <span class="dot"></span>
+      <div><b>Ёлочка Ассистент</b><small>Онлайн · принимает заказы</small></div>
+      <button class="navbtn" id="openOrdersBtn">📋 Заказы</button>
+    </div>
+    <div class="chat-msg" id="chat"></div>
+    <div class="chat-input" id="inputRow">
+      <input id="field" type="text" placeholder="Напиши сообщение…">
+      <button id="send">➤</button>
+    </div>
+  </div>
+
+  <!-- ПАНЕЛЬ ЗАКАЗОВ (ТОЛЬКО ДЛЯ ПРОДАВЦА) -->
+  <div class="admin" id="ordersPanel">
+    <div class="chat-head">
+      <span class="dot"></span>
+      <div><b>Заказы Ёлочки</b><small id="ordersCount"></small></div>
+      <button class="navbtn" id="newOrderBtn">+ Новый заказ</button>
+      <button class="navbtn alt" id="backToChat">← Чат</button>
+    </div>
+    <div class="orders-list" id="ordersList"></div>
+  </div>
+</main>
+
+<!-- МОДАЛКА КОДА (вход в заказы / подтверждение куриера) -->
+<div class="modal-wrap" id="curierModal">
+  <div class="modal">
+    <h3 id="codeTitle">🧑‍✈️ Режим куриера</h3>
+    <p style="font-size:.9rem;color:#7a7163;margin-bottom:14px" id="codeHint">Введи код.</p>
+    <input id="curierCode" type="password" placeholder="Код">
+    <div class="err" id="curierErr">Неверный код. Попробуй ещё раз.</div>
+    <div class="mrow">
+      <button class="btn ghost" style="flex:1" id="curierCancel">Отмена</button>
+      <button class="btn primary" style="flex:2" id="curierOk">Войти</button>
+    </div>
+  </div>
+</div>
+
+<script>window.IMGS = {
+"1":"data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABIMDRANCxIQDhAUExIVGywdGxgYGzYnKSAsQDlEQz85Pj1HUGZXR0thTT0+WXlaYWltcnNyRVV9hnxvhWZwcm7/2wBDARMUFBsXGzQdHTRuST5Jbm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm7/wAARCAA/AFUDASIAAhEBAxEB/8QAGgAAAgMBAQAAAAAAAAAAAAAAAwQAAgYBBf/EADEQAAICAQIDBQYGAwAAAAAAAAECAAMRITEEEkEFIlFhgQYTJGJxsRQjMnKR0UNSwf/EABYBAQEBAAAAAAAAAAAAAAAAAAEAAv/EABsRAQEBAAIDAAAAAAAAAAAAAAABETFRQWFx/9oADAMBAAIRAxEAPwBiu1HUMjBgdiDCg5mZ7BuZWsTOmhxNJWcgSIolpTIAyYAcfQWIVwcden87Q0mpMSqOG2l4hQyplmYA4M4ZJQwbQhlGkAm3kkbeSSZvsQ/EN9BNVUe6Jk+xD8S30mrq/SIHwW452uvr4ZSQrAs5H+vh6zlYey5qaAqV16E8ucnwE7xHKnFrYAzWMOUKOo3zLqtlJY1J3rDk5OgMy0YrpsVl5rAQPlxDuwUZMW4biOexwWBC4B/d1xOtniXx/jG/n5TU9D6XZg91bKxFa53JwxMZqbKAHcbyz1qVxjSKnNL4zp0/qXC3TJg2nVcMuRKMYsqE6yTjHWSSZnsQ/Fn9s1aNhM+UynYS83G4+UzWCktVjyg0X4B1ute5mGW0QeCiPkBhgzza+DbhxSAzMagQNN8xkUkjLMObxGRCKj+5BO5hFUIuAMART81NrD64M5+KsXfkPriOyA1YwVST0nn3XB+YaHl0YA6iEfisjvVt6a/aI3FGtBUOH2DKNfXxELejJ2Y4a7mO+eh+sOxgOHrI7zBc56DGfOGIMZwryo28k4c5kiy8T2arz2jj5D/ybKurQTJ+znd7WQeKn7TaVkYiATXgGAcYMfbGDPN45+XkXbmOhHTGskqtqOxVTkjynWVTuoPpPJ99lKUJK8q5yup3++kKgs5nQF3KkBGBwFOM+P8AcidNFZBwoH0nTQvn/MsphIYtLunLtLpXkSWHvARmtQQJIq1OskeNY0kin//Z",
+"2":"data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABIMDRANCxIQDhAUExIVGywdGxgYGzYnKSAsQDlEQz85Pj1HUGZXR0thTT0+WXlaYWltcnNyRVV9hnxvhWZwcm7/2wBDARMUFBsXGzQdHTRuST5Jbm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm7/wAARCABVAD8DASIAAhEBAxEB/8QAGgAAAgMBAQAAAAAAAAAAAAAAAwQAAQIFBv/EADkQAAIBAgMFBQQHCQAAAAAAAAECAwARBBIhBRMxQVEGImFxoRYyUoEUM1ORkrHRNEJEYnOiweHx/8QAGAEAAwEBAAAAAAAAAAAAAAAAAAECAwT/xAAfEQEBAQABBAMBAAAAAAAAAAABABECAxIhMTJBoUL/2gAMAwEAAhEDEQA/APLYi6CG3OJT+dBzt4V0TtZHlzyYKBlCBFU8FAvw++tLtXC372zID5f8pGlxnPqB8P0kv4O/PP8ApQc56Cu3FtrBLIpbZUBiCkFOpNtfT1oU20dmSEldlKt+jWoDNg6nM/l/JTZxznEggfs8n5UnHotiK6i47AJIrJs9kUhlkAkPeUi1qoz7JI0weIU/1L1Go7l28TuPeXPC3NVJDaFH6ki1M4hsKyD6KkqtfXOeVYEsRgWORGOUk3U1SvjLbp8OIpyfrxeiPZjDfE/pVezEHxv6V6ELWstXcuXmz2Xh5SP6UFuzkQky76TX+UGvUPYdKUDRNLMRIxABU6AgEAEkfp1FSuTONxx2XXlO34RU9mB9ufw13sPPGbx5jmRshDcb/wCxrTWUHhTPMZl5f2YP2/8AZW07Klz9cv4a9IVsKLGtjpTnsEVTmy1AazIe7eimXll1QblpVf3iDoovx8akEckUxV5yQ2YhFQX8yaqOZY8qNKxZkZgCmuhuTb/FXEZTuBv7a/vLrKNdfC/TwrO1sLHKu8mjczOVAAkFtb8wByuacgLAqrgK+W7KDcD50qgkyxESSYjdsblO6Tyt4jjeixMj4hgYykiMdTfUE8R4Gg9y+ptxoPMVjFQLiIDG0kkYJBzRtY0Rjw86qQ2Q1rRL3rLtcgdayzWFJvi0XErFJdS9gh5Ne9/uqVyApDLJJbER7uxc583vZb2UDpprW1YZxAZJ2yyh949iCb8PChZC+Gh+ktut1Z2IGnd4a+tVPLGYiYms0oD5WOpF9LDrUVxWEaKkbo0sccvvZrBTfl1AvVDOqb1ZGkkjkJlzHRfiUeBGvyqB1TEMkwXvSkxKb+9xufC/rVssUoaF0MEmIU3W92NuemlEXSjkzECx0NtRxohAYWPCuamdcbvJJAVYERBRoBoTc0+r5lDAgg1fF2lLnzuVjOW1+V+FAZnSQGzOpFsoAshAJvf0phgHFjQhh9T321tzpchYEJVJxKmHxDPIZSh+o7y+IIrckjRYpN3EN7I2USzG+g6AcBRzhuBQ5SNRl0860ICZM5sGta51qe1q0hYiV1eNBunhbQiVScviT8xRgJI5FISEKRZgt7nTr0vRDHnFntaiotuJv50+2NlcJE8EEalSWChSA3dAuT6Xp5LhdaoEVL1QZSuyQOtbBqVKcrQNaBqVKIrBrV6lSiKXqXqVKIv/2Q==",
+"3":"data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABIMDRANCxIQDhAUExIVGywdGxgYGzYnKSAsQDlEQz85Pj1HUGZXR0thTT0+WXlaYWltcnNyRVV9hnxvhWZwcm7/2wBDARMUFBsXGzQdHTRuST5Jbm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm7/wAARCAA/AFUDASIAAhEBAxEB/8QAGgAAAQUBAAAAAAAAAAAAAAAABAABAgMFBv/EACoQAAICAQMCBgICAwAAAAAAAAECAAMRBBIhMWETIkFRcYEFMhRCI4Kx/8QAFgEBAQEAAAAAAAAAAAAAAAAAAAEC/8QAGxEBAQEAAwEBAAAAAAAAAAAAAAERAiExQVH/2gAMAwEAAhEDEQA/AOkv1pJODxBG1BJg7NkyOZmTE3oR45kTaTKo80GYk9YHr7lrVAwyC319wwiA/lAPB/rvPCbiBk/cla4+lpWpKBV67QcEYOPiEbROeqsaoguzElhhTzg+/wAzY0d+8FHILr15BP3jp8SedVbPsXWVq4IYZEqq01dCba1CgekIMiZWVRHMUcxQCSeY4kfWSEqJCSEYRxCliZ/5eoNRuP8ASH2PsQtjOPSZN2vta0JtCcc+pHcD1k1qcbewDq1hRsIz4BDDnAPQkQnQM62AFyyjjIxtHbI6nv0guotLP4iIMEYbLckdQc/PpFRYiDNdaC8EnBOOD6Zk9jdmXL63iRImZFOrezVHfbwB5RjAJImoGyoMSsWYRikSYpWRQBzJAGSu8ikDlsekp/Giw2MlvlYorlCf1JznHaBeAY8vavEpcYMoi3ImbrWrSxV2lnbpjGR3+OenzNBmwJz1z5uY3nc2ThUPOe/t9ws6V3oGZrHVkCk+VTj/AGx3MSBSqCnb4hXzFweO3Y/9kad9jbqFUHO0qWwDx7+vWami02UBYN0wA5GQPbiS/je/WZpaQ17kkgo3lUjnHf7myvCgSa6NVbcBzHNZzEjPK6qJil38cmKGWnpdMWbxrR5j+oPp3+ZLV6QsBbTgXV8qffsexl6NxA9VqLqdWi12HNnCo48jdvcHvLeoTsRWy30LYnRh0PUH1EHuGI+jdi9h2FFsG/aSDtbJB6fAMjqT1j0Z+u1Hg0kjkk4EwhW76hbEx5mJwTyQP2HzN+xQ/WNXWqnpI1OWTAOk0HG0j/GeoIyGB56HpiataBRgRgQBHD8wzbqwLmOK+Y6ES1CC+JQ6UZEUPprBSKB//9k=",
+"4":"data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABIMDRANCxIQDhAUExIVGywdGxgYGzYnKSAsQDlEQz85Pj1HUGZXR0thTT0+WXlaYWltcnNyRVV9hnxvhWZwcm7/2wBDARMUFBsXGzQdHTRuST5Jbm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm7/wAARCABVAD8DASIAAhEBAxEB/8QAGwAAAQUBAQAAAAAAAAAAAAAAAwABAgQFBgf/xAAyEAACAQIEBAQFAgcAAAAAAAABAgMAEQQSITETQVFhBRQikTJTcYGhI1IGM1SS0fDx/8QAFwEAAwEAAAAAAAAAAAAAAAAAAAECA//EABoRAQEAAwEBAAAAAAAAAAAAAAABAhEhQTH/2gAMAwEAAhEDEQA/AIHwLxH+nj/tWgzfw/4iR/IQfQLXdChTVoyeb4vwHHRqWaIWHcVmnBT30TN3UgivQPFzlw7Ei46dawFESSRxwoqrzA5Gs8rqtJOOe8hiflN7UvI4n5L+1dcsNxT8ChN2484TELvC/tUOBJ8t/Y12RhqBw/agTfrtAaFKdKnmqjjsQVRggLEDYbntV26KTapjmU6X23rDPlopoYMskjFrqTqB99uVWGD4qB+LJETe+VTdVNtFPW29JYY5lzoylXUAOp1JHSsb29ayahSSOmcJA7FbEeoAML9f81ITIHEbOqyEXyFhegOS7KgxMbQgEOG1aT6nYU+Kwa4hSZSAQLo9/h+9KHVsEHcWpytUVjngcTSSqsbKOKhFxm5kdKvRsCo1BB1B61Uy8qbi3GnAUm9ZGNBxMiWdTAhPEUn4iNge1O2IPM1QdkihxDSosaBy4IFzf92vOnlejGcGxMsccWZwiBTYLp8XQVnpxRMWd0kmj9TRBrFAOQG2nv3pMmXyscsnFHqKl7nMdAPwaRkcxvMz5mkvHGFBsBzI5nap+qHnPCWWSYAm43vYA8zbWq6zFZBJh5RIoAzwcgOe+xv71aVgyRMpAsMvpJO317daaSHMXKDLJltlJ9DG2lxSh08zKY4WEbT6Zke4GvKh4Cf9RsOYeFlXMoBuO9qDHiBHgoFaN1RyyXTUprpVtpbYmONSgVlOl9Se1BCym1jWe0Q8y/Ee4JzKrNoB/wBrQcZlIqjOispLoWZNgu57VWXLssezSeIjYwKkZ/UW5UgfjtUeIwKTJInpQKeKSLHrQYsVnihKRWW7AKDaxG1TDccHzEWqHdTyqemPHK3l2j+Mqo9clxxOp6270LzErOIoY1JbRmzn0jrtQ8K0OUyJxERriz2Gb21NEWSExOYzJEkRBYjTNz570AaYMiqsMa5VGgJIFQwkiSO4WARiE2X6ka0PFTCKNeGJGDGwVTqSeWutWcMhWJVKqh3IXUD786PoEzUKVM3qXekGp81a/Waoyo2ZSMjE3NtDfrSa8cJLB5SGzDILHSrLorj1C9DMFvhZgKi43xcynqAfiOVaE5QLq2n+g1GJJGLswMWYAbgn2owhb9/4oiQgbkn60TGi5RCCIIoVbm2uY6knmatouUUygDanvVTHSbdqIY1INSpVSUgae9KlSCQNSBpUqAe9K9KlQH//2Q==",
+"5":"data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABIMDRANCxIQDhAUExIVGywdGxgYGzYnKSAsQDlEQz85Pj1HUGZXR0thTT0+WXlaYWltcnNyRVV9hnxvhWZwcm7/2wBDARMUFBsXGzQdHTRuST5Jbm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm7/wAARCABVAD8DASIAAhEBAxEB/8QAGgAAAgMBAQAAAAAAAAAAAAAAAwQAAQIFBv/EACsQAAICAQQBAwMDBQAAAAAAAAECAAMRBBIhMRNBUWEiMnEUQqFSgZHB0f/EABcBAQEBAQAAAAAAAAAAAAAAAAACAQP/xAAaEQEBAQEBAQEAAAAAAAAAAAAAARECITES/9oADAMBAAIRAxEAPwD07DiI6n1jz9RDUykubegOSZz2rVXNhbBX6fu479vedK/kYHrOYN9y6h6007ZI2PnIJH9XyJz6q+YcRAR1L8cHo7lsqV1cODwWAwCR2RG9s2XWWYB45k1xnbMlZTHfsPE5+qbAJjlrcTmauzL7c9/zFuQk0hqt9gQJYUO4EhSASPYQJqprtvUKQ1le5lA4IHH+ZBULaWrZ0GoyxUCwMy57wexJpXf9QKvE9dSqRixtxzn39py9dfFMmnVabcFfEu5Rg78Y6x7cxum1PI6BuVxke2eohWHDi3VrUoqOfN+5u8D+YRdQptW413pW/wBILY289EjsfmPjPrp9jiURM0t9OD37QhE6T1FNW38Tmau4EYZmVnBVWCk7TjuGdztJnP8AOz6xqfL4lUDaBjLkjPr6TOm8svXT+iAaql3qIGEOAD6ZPfyYwlpWymq5VFrA/YcgY/7KrNqs41DVmvpWPBP59Jaaaut1apQBnPEhQN9ykvUbRpyjcEqDuGPTPzIVLUUveiDaoZiW2qp/EYsVATZbtCrzk+kDcabrqfILFO7KbhhWMNa0t6FthvFlmS327Tj8R/uc1kF+pqsFgIrJIAHOcYP9p0V+0SuU9B5yIrbXaM+JlHsSM4hgZrMqzUbhHawvrssZDtTawfsfI/Murcuo3VsVrduV9Ou/iNsit2BBWjYyY6zJvOK/WrvpGpXYScf7lNU1llbWKd6HIw30598TSPh1jMzmSxtuVSIABxNysyiZaCoaaDQAaaDTQcNKdVsXDDiDDSw0CV0qjZEYBgQ00GmAmZCYPMhMBAMZoNJJNGgZoGSSBsGWDJJAvMhMkkD/2Q==",
+"6":"data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABIMDRANCxIQDhAUExIVGywdGxgYGzYnKSAsQDlEQz85Pj1HUGZXR0thTT0+WXlaYWltcnNyRVV9hnxvhWZwcm7/2wBDARMUFBsXGzQdHTRuST5Jbm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm7/wAARCABVAD8DASIAAhEBAxEB/8QAGgAAAgMBAQAAAAAAAAAAAAAABAUAAQMCBv/EADIQAAICAQMCBAUDAgcAAAAAAAECAxEABBIhMVETQWFxIiMygZEUQrHB0QUkMzRSofD/xAAXAQEBAQEAAAAAAAAAAAAAAAABAgAD/8QAGBEBAQEBAQAAAAAAAAAAAAAAAAECETH/2gAMAwEAAhEDEQA/AGuTKyxiFVl1l5wzVmZ1WSsAH+IG7MThQNxN+XX+OcPU31wlPEAwiIfDmOEQj4cQDusm8A0cG1MwSNgHCuVOz3rAhCi7nSQmRoxLGpHtVHvd+95NpkOLscYJqmkHhmPmzWwMASfLr1HXLg1YnlZFC0Bdq11z0PY5nrUSXTx+LfghwZK7X/Ga3sMnA0k0scqaYozRGMxtSn4uOo9ufOsJ0LfOceMkhCj6CSD6nsfKsFIigjdTB4COaKSN8DnnhTfF8c9M2ii/zkLLCsDjdarX0VwDXHXJJqOcIh6YAspMhQftHJ/jDdObXnOkqLCHXsiKsjmUWQh8M8kE9K/tg3gGSczBJYyo4TYEb0Cm/Su+FahTKkckVM0T7wP+X/rwaWSQQ+KjmcAmldeI/Mk+vkM5rFRtqIpkeYxUSFdIybUnoT3w1tscTllZlHVVFn8YugiAnijCspA8STc+48cKL7dcZEko2wjcel9M1MLmEXhBaEkXDRsR+3cLXn3/ABm8MuxwUjJ8WQxg9AqrfH/XTM9RA0WlIt3OwqNxB2DrQr2zrTwCePxWUxyE7gykgXX1VfBzBtJ/uEWJwCSSwB6kV1+14z0304tXT1qfE3fDZYLXmfXt1xjDwMrI0RaU/JZlXaxJtb4Df2wYymRgxQI0jmCRQ1huov7ZBHINWGX6C27du6dxXrmq6YKrFK8Vr+ZXxc/1yFMV3yQPaysZo1UFO4FEHsLxgJnOlQ6ZB1oiroDrQvn84Do4xo2dpWEa7iALNHz+9f0wxtUiOqUxshSQOAT0GatHUr6o7Qqc+lbT7304vL2agTsFbbGTwb+leOAvfr+czOmd4p0fUSEStYI4KDsM08CPx45izF0TYLPUeuZncBSAlmmBEjAKC18/c9cYxHjFcWl06xrGqAhX3qDzTd8YxGhWXlGiR7VztIsg1ffB1TUvDtdwSasN0PsRgaajUzxSCRhFIa2MPLDFi+ekzSNuRNpF8H1ydeqz4p/Cj0ivLPWxmG6PkC/28+WEI6pOsEcJJWMssh6X7+uYxDTRRGOMKVJsjrzm36keQ/Oblp7G+kEssS/qQFk5sKeMLWFB5YtErMwo17Y40WiEiAyAknuc6Zjna5CqvYZ2HA8x+cKOgiUf6a/jMH0yg8KB9srlHXhdIxaYoxJDKGBvkYW8S6lpIpL2qARz3yZMlgmknaHUnTcMoNA9DjRTkyZTN9N8Uyg989XpOEGTJjE1u7WMxIBOTJiH/9k=",
+"7":"data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABIMDRANCxIQDhAUExIVGywdGxgYGzYnKSAsQDlEQz85Pj1HUGZXR0thTT0+WXlaYWltcnNyRVV9hnxvhWZwcm7/2wBDARMUFBsXGzQdHTRuST5Jbm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm7/wAARCABVAD8DASIAAhEBAxEB/8QAGQAAAwEBAQAAAAAAAAAAAAAAAgQFAwAB/8QAMBAAAgIBAwIEAQ0BAAAAAAAAAQIDEQAEEiExQRMiUWEFFCMyQnGBkZKhsdHh8MH/xAAZAQADAQEBAAAAAAAAAAAAAAABAwQCAAX/xAAfEQACAgIDAAMAAAAAAAAAAAAAAQIRAxIhMUEEMlH/2gAMAwEAAhEDEQA/AK/wqPbpCa6nDmPOb6ZPD0UY9rxWXljjGTQVJIA85jEN1yHq36D0zViFBJNVk19ZqIkIjWFiH4BeqXreYboZFN9DUKhjM5FhnI59Bx/OY6NQut1EYHljA2egB5Izx9bBpNIrFtwA6rz9uefCG8U6icnmRga9OOmZtWhlNJ2UQMILnoGEBmxY7IAkYUdhk+Q8nKGoPlybIeuaZhEvVztLNtDUg/14HgMygRAA3Zvk/jg0vyna11YFdB0GN6USAN4vhgXxtJOSydsuS0iqFZIgptaV/YdfYjNIHaFBJCQF+tGel+2FKGVpWm8MoBYAu/bMYeFAIJHiAH7CKOCLGfZclmCQSxhhx7Htmwyb8KksyREglDxXplIZRF2rI5x1k0bamTg5OlcKpYmgBZOayy7u+T9fJ5BHW7eaI9sMnSsXCOzSEHk8Vm8pJclgoHUdv5zaKeWQCLwlmB5F+2e3DEik7djmht9PX7s08LwoysH0h9Kms7e2TWejtGqoweaTUEbh06IBVf3niuysAKskcOKsg/8Af3rGmQD50oXlUAkA9TnTMoKqQLYGgeaOcmc5Ra1oLROI9Xy+5XXymq75VByLMx2RzRDzL5qXv2OVoJN8St6jG434TZl6LFuMnfEpQgs19GgSemO3ietFgNxY7kXV5rIriJxOpomxyM5ULbogFbXWhfucaOudR4ZXkKB1s325+zFfliOVSeGJwD5ioFj2H6Y142n00DMJZCGuozQ5HaqyZl+rumjWPVQrHbOYpQhWqO2+xxfxZZlSQqxYcAgdx3uv2w3mgeMPCzem1EBvvzi6ushG1VUk8MB2/YZy6Dr6UllEkV9NynkCqxr4VIDpVAJIHc5PnBWAiGgwBCi6BJv+8d+HCRYfnSpboSooYyHZPka1Z15jMNykYQbPG5GUEZJlR3vYRuAPkbg3f64DwTGMqx5Hn6cE1zWPypfb8RizRNflC/lxDxvwsj8j9ATTSUEBNKDyeBZ/3XGoQUrc4YCrC9B63i4SYfVT8uGsMz8OxPPHHTMaM08qZzKkrwxsxFksAvoO+WoRtQDJ8GlUSeIV856seuUFNDGwjXLE5J2kkJA4V52djScEjB2i87OzghBRmijOzsATQcYLz7Pq39+dnYGFH//Z",
+"8":"data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABIMDRANCxIQDhAUExIVGywdGxgYGzYnKSAsQDlEQz85Pj1HUGZXR0thTT0+WXlaYWltcnNyRVV9hnxvhWZwcm7/2wBDARMUFBsXGzQdHTRuST5Jbm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm7/wAARCABVAD8DASIAAhEBAxEB/8QAGwAAAgMBAQEAAAAAAAAAAAAAAwQAAgUBBgf/xAAuEAACAQMCBAMHBQAAAAAAAAABAgADESEEMRITIlEUQWEFIzJScYGRYpKhwfH/xAAWAQEBAQAAAAAAAAAAAAAAAAABAAL/xAAdEQEBAQABBQEAAAAAAAAAAAAAARECEiExQVFh/9oADAMBAAIRAxEAPwBphiBK5h32goFXhnbSwE7aQVtOgS1pLQK9EdU0aQxM+l8U0qI6YxMyocQQnS9xIJB3yi/i05rJcXUgWvnPpGbYiesokVFq00JbYsu4ELvoz9OKQROzKGqqLyw3HxMChso4Q/cn/bxnT6ogFavkcEeYsDeGnD9P4ppUNplaeqKguARY2mnQbE1AxllxBAy4MkKJ2L1KllxvOq7DzhbhktB1umIvVo24sEqRcNb+/WWIWvRByAwBBxeFapdciA06stHgcbEgX7XxM8s8xrjvszpz04N/XvHqFSI0WBW3aGRrGajF8svnr6ylTXU6e7gegyf4la2mR8hcwdHTlT0rwn5jDuZhtXv1Ey3NbdaZI7ytPToMkXPcxlQAIdP09XwJagYY/HadLS1Sir74PcRbUUqyKOW5JJtcjb1heLU5CJWXnsiv1qASo8o4rXAJiGk03KFyOogcTfMRHQZrizyIgy4Mx/F1mOX/ABNL2XT8Qb1bsPUzWMGQ1t50VF+Yfmaun0WnAHuU/bGhp0UdKKPoI4tYYcHa5+gMnF+lj9psPSgfDi+0sWkUpVX+GmfuQIUaKuRc8sfcmP06VocJiWDXzlJu+x2sJJJRV6Cg5jKuTJJNBDmDY2kkkkRodTcSSST/2Q=="
+};</script>
+<script>
+(function(){
+  "use strict";
+
+  var CODE = "kok2200#";
+
+  /* ---------- данные игрушек ---------- */
+  var toys = [
+    {id:"1", name:"Олень",          desc:"скачущий олень из дерева"},
+    {id:"2", name:"Ёлочка ажурная", desc:"деревянная ёлочка с узором"},
+    {id:"3", name:"Баран",          desc:"фигурка барана с рогом"},
+    {id:"4", name:"Птичка",         desc:"птичка с расписным узором"},
+    {id:"5", name:"Ёлка узорная",   desc:"дерево с ажурными завитками"},
+    {id:"6", name:"Перчатки",       desc:"деревянные рукавички"},
+    {id:"7", name:"Матрёшки",       desc:"матрёшки с зимним пейзажем"},
+    {id:"8", name:"Круглый узор",   desc:"круглый медальон с узором"}
+  ];
+  var PRICE = 100;
+
+  /* ---------- состояние ---------- */
+  var cart = {};
+  var address = null;
+  var entrance = null;
+  var delivery = true;
+  var state = "browse";
+  var pendingConfirm = null; // объект ожидающего заказа [покупатель]
+
+  var buyer=document.getElementById("buyerPanel");
+  var ordersPanel=document.getElementById("ordersPanel");
+  var chat=document.getElementById("chat");
+  var field=document.getElementById("field");
+  var inputRow=document.getElementById("inputRow");
+
+  /* ---------- шарики ---------- */
+  (function(){
+    var colors=["#d33b3b","#2fa4c9","#e6b93e","#8fd14f","#cf6dd0","#e0782e","#3b82c4","#d9436e"];
+    var sizes=[30,24,36,20,27,32,22,26];
+    var box=document.getElementById("balls");
+    for(var i=0;i<8;i++){
+      var b=document.createElement("div");
+      b.className="ball";
+      b.style.setProperty("--c",colors[i]);
+      b.style.left=(i*30)+"px";
+      b.style.animationDelay=(i*0.4)+"s";
+      b.style.width=sizes[i]+"px"; b.style.height=sizes[i]+"px";
+      box.appendChild(b);
+    }
+  })();
+
+  /* ---------- звук нового заказа ---------- */
+  var AudioCtx = window.AudioContext||window.webkitAudioContext;
+  var actx=null;
+  var knownOrderIds = {};      // какие заказы уже "пищали"
+  var lastSeenOrders = [];
+  function beepNewOrder(){
+    try{
+      if(!actx){ actx=new AudioCtx(); }
+      if(actx.state==="suspended"){ actx.resume(); }
+      var t=actx.currentTime;
+      [880,1320].forEach(function(f,idx){
+        var o=actx.createOscillator(), g=actx.createGain();
+        o.type="sine"; o.frequency.value=f;
+        g.gain.setValueAtTime(0.001, t+idx*0.2);
+        g.gain.linearRampToValueAtTime(0.5, t+idx*0.2+0.02);
+        g.gain.exponentialRampToValueAtTime(0.001, t+idx*0.2+0.35);
+        o.connect(g); g.connect(actx.destination);
+        o.start(t+idx*0.2); o.stop(t+idx*0.2+0.4);
+      });
+    }catch(e){}
+  }
+  // разблокировать звук при первом касании (требование браузера)
+  ["click","touchstart","keydown"].forEach(function(ev){
+    document.addEventListener(ev,function(){ try{ if(actx&&actx.state==="suspended") actx.resume(); }catch(e){} },{passive:true});
+  });
+  // следить за новыми заказами каждые 2 секунды
+  function watchOrders(){
+    var list=[];
+    try{ list=JSON.parse(localStorage.getItem("elochka_orders")||"[]"); }catch(e){ list=[]; }
+    var fresh=list.filter(function(o){ return o.status==="new"; });
+    if(fresh.length!==lastSeenOrders.length){
+      // есть новый относительно того, что видели
+      fresh.forEach(function(o){
+        if(!knownOrderIds[o.id]){ knownOrderIds[o.id]=true; beepNewOrder(); }
+      });
+    }
+    lastSeenOrders=fresh.map(function(o){return o.id;});
+  }
+  watchOrders();
+  setInterval(watchOrders, 2000);
+
+  /* ---------- чат-помощники ---------- */
+  function bot(html){ addBubble("bot",html); }
+  function you(text){ addBubble("user",text); }
+  function addBubble(kind,content){
+    var b=document.createElement("div"); b.className="bubble "+kind;
+    if(typeof content==="string") b.innerHTML=content; else b.appendChild(content);
+    chat.appendChild(b); chat.scrollTop=chat.scrollHeight;
+  }
+  function addBox(el){ chat.appendChild(el); chat.scrollTop=chat.scrollHeight; }
+  function focusInput(){ inputRow.style.display="flex"; field.focus(); }
+  // сообщение БЕЗ прокрутки вниз — чтобы список товаров не прыгал
+  function botQuiet(html){
+    var b=document.createElement("div"); b.className="bubble bot";
+    b.innerHTML=html; chat.appendChild(b);
+  }
+
+  function start(){
+    bot("Привет! 👋 Я — <b>Ёлочка</b>. Каждая игрушка <b>100 ₽</b>, ручная работа. Что закажем?");
+    showToys();
+  }
+  function showToys(){
+    state="browse";
+    var wrap=document.createElement("div"); wrap.className="actions";
+    toys.forEach(function(t){
+      var btn=document.createElement("button"); btn.className="pick";
+      var img=(window.IMGS&&window.IMGS[t.id])?'<img src="'+window.IMGS[t.id]+'" alt="">':'<div style="width:50px;height:50px;background:#efe9db;border-radius:10px;flex:none;display:grid;place-items:center">🎄</div>';
+      btn.innerHTML=img+'<span class="ti"><b>'+t.name+'</b><sm>'+t.desc+'</sm></span><span class="pc">'+PRICE+' ₽</span>';
+      btn.addEventListener("click",function(){
+        if(cart[t.id]){ delete cart[t.id]; btn.classList.remove("added"); btn.querySelector(".pc").textContent=PRICE+" ₽"; botQuiet("Убрал <b>"+t.name+"</b>."); }
+        else{ cart[t.id]=1; btn.classList.add("added"); btn.querySelector(".pc").textContent="✓ в заказе"; botQuiet("Добавил <b>"+t.name+"</b> — "+PRICE+" ₽."); }
+      });
+      wrap.appendChild(btn);
+    });
+    var ok=document.createElement("button"); ok.className="btn primary"; ok.textContent="Оформить заказ";
+    ok.addEventListener("click",askAddress); wrap.appendChild(ok);
+    addBox(wrap); bot("Выбери игрушки кнопками ниже 👇 (можно несколько).");
+  }
+
+  function askAddress(){
+    var items=cartItems();
+    if(items.length===0){ bot("Заказ пока пустой 😅 Выбери игрушку выше."); return; }
+    state="address";
+    var s=document.createElement("div"); s.className="summary";
+    s.innerHTML=items.map(function(t){return '<div class="ln"><span>'+t.name+'</span><span>'+PRICE+' ₽</span></div>';}).join('')+
+      '<div class="ln"><span>Игрушки</span><span>'+(items.length*PRICE)+' ₽</span></div>'+
+      '<div class="ln total"><span>Итого</span><span>'+total()+' ₽</span></div>';
+    bot("Проверь заказ:"); addBox(s);
+    bot("Напиши номер дома (у нас от 1 до 19):"); focusInput();
+  }
+
+  function onMessage(text){
+    text=text.trim();
+    if(state==="address"){
+      var n=parseInt(text,10); you(text);
+      if(isNaN(n)||n<1||n>19){ bot("Дома у нас от 1 до 19. Напиши номер ещё раз 🙂"); focusInput(); return; }
+      address=n; state="entrance";
+      bot("А в доме №"+address+" какой подъезд?"); focusInput(); return;
+    }
+    if(state==="entrance"){
+      var e=parseInt(text,10); you(text);
+      if(isNaN(e)||e<1||e>4){ bot("Какой подъезд? Напиши номер (например 1 или 2)."); focusInput(); return; }
+      entrance=e;
+      // создаём заказ свободно, БЕЗ блокировки кодом и без перехода в заказы
+      var order=makeOrder(); pendingConfirm=order;
+      var list=loadOrders(); list.push(order); saveOrders(list);
+      state="waiting_confirm";
+      var msg="Заказ собран: <b>"+order.items.map(function(t){return t.name;}).join(", ")+"</b> на "+total()+" ₽, дом №"+address+", подъезд "+entrance+".";
+      bot(msg);
+      addStatusBubble(order.id);
+      cart={}; address=null; entrance=null;
+      return;
+    }
+    // свободный текст
+    you(text); var low=text.toLowerCase();
+    if(low.match(/привет|здравствуй|добрый|хай|даров/)){ bot("Привет-привет! 🎄 Выбери игрушки ниже."); }
+    else if(low.match(/цена|сколько|стоит/)){ bot("Каждая игрушка — ровно <b>100 ₽</b>."); }
+    else if(low.match(/спасибо|благодарю/)){ bot("Всегда пожалуйста! 🌟"); }
+    else{ bot("Выбери игрушки кнопками 👇 — я всё оформлю."); }
+    focusInput();
+  }
+
+  function makeOrder(){
+    return { id: Date.now(), time: nowStr(), items: cartItems().slice(), address: address, entrance: entrance, delivery: delivery, total: total(), status:"new" };
+  }
+
+  /* ---------- заказы ---------- */
+  function loadOrders(){ try{ return JSON.parse(localStorage.getItem("elochka_orders")||"[]"); }catch(e){ return []; } }
+  function saveOrders(o){ try{ localStorage.setItem("elochka_orders", JSON.stringify(o)); }catch(e){} }
+  function nowStr(){ var d=new Date(); return d.toLocaleString("ru-RU",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}); }
+
+  function openOrders(){
+    // сначала код — только потом панель заказов
+    askDoorCode();
+  }
+  function backToChat(){
+    ordersPanel.classList.remove("open"); buyer.style.display="";
+  }
+  function renderOrders(){
+    var list=loadOrders();
+    document.getElementById("ordersCount").textContent = list.length ? (list.length+" заказ(ов)") : "пока пусто";
+    var box=document.getElementById("ordersList"); box.innerHTML="";
+    if(list.length===0){ box.innerHTML='<div class="empty">Пока нет заказов. Когда покупатель оформит заказ, он появится здесь.</div>'; return; }
+    list.sort(function(a,b){ return b.id-a.id; });
+    list.forEach(function(o){
+      var card=document.createElement("div"); card.className="order-card";
+      var stLabel, stClass;
+      if(o.status==="new"){ stLabel="🕐 Новый заказ"; stClass="new"; }
+      else if(o.status==="confirmed"){ stLabel="✅ Подтверждён"; stClass="new"; }
+      else { stLabel="📦 Доставлен"; stClass="done"; }
+      var st='<div class="status '+stClass+'">'+stLabel+'</div>';
+      var deliv = (o.delivery===false)?'<div class="oc-addr">🚶 <b>Самовывоз</b></div>':'<div class="oc-addr">📍 <b>Дом '+o.address+', подъезд '+o.entrance+'</b> · доставка</div>';
+      card.innerHTML=
+        '<div class="oc-head"><span class="oc-num">Заказ #'+(o.id%100000)+'</span><span class="oc-time">'+o.time+'</span></div>'+st+
+        deliv+
+        '<div class="oc-list">'+o.items.map(function(t){return t.name;}).join(", ")+'</div>'+
+        '<div class="oc-total">'+o.total+' ₽</div>'+
+        '<div class="oc-actions"></div>';
+      var act=card.querySelector(".oc-actions");
+      var b1=document.createElement("button");
+      var b2=document.createElement("button");
+      if(o.status==="new"){
+        b1.className="btn red"; b1.textContent="✅ Подтвердить — несу заказ";
+        b1.addEventListener("click",function(){ confirmOrder(o); });
+        act.appendChild(b1);
+      } else if(o.status==="confirmed"){
+        b1.className="btn red"; b1.textContent="📦 Заказ прибыл";
+        b1.addEventListener("click",function(){ arriveOrder(o); });
+        act.appendChild(b1);
+      } else {
+        b1.className="btn ghost"; b1.textContent="Заказ доставлен"; b1.disabled=true;
+        act.appendChild(b1);
+      }
+      box.appendChild(card);
+    });
+  }
+
+  /* ---------- режим кода (только доступ к заказам) ---------- */
+  var modal=document.getElementById("curierModal");
+  var codeInput=document.getElementById("curierCode");
+  var errEl=document.getElementById("curierErr");
+  var codeTitle=document.getElementById("codeTitle");
+  var codeHint=document.getElementById("codeHint");
+  var okBtn=document.getElementById("curierOk");
+
+  function askDoorCode(){
+    codeTitle.textContent="🔒 Доступ к заказам";
+    codeHint.textContent="Введи код продавца, чтобы открыть заказы.";
+    okBtn.textContent="Войти";
+    codeInput.value=""; errEl.classList.remove("show");
+    modal.classList.add("open"); codeInput.focus();
+  }
+  document.getElementById("curierOk").addEventListener("click",function(){ tryDoorCode(); });
+  document.getElementById("curierCancel").addEventListener("click",function(){ modal.classList.remove("open"); });
+  codeInput.addEventListener("keydown",function(e){ if(e.key==="Enter") tryDoorCode(); });
+  function tryDoorCode(){
+    if(codeInput.value.trim()!==CODE){ errEl.classList.add("show"); codeInput.value=""; codeInput.focus(); return; }
+    modal.classList.remove("open");
+    buyer.style.display="none"; ordersPanel.classList.add("open");
+    renderOrders();
+  }
+
+  // подтверждение заказа — просто кнопкой, без кода
+  function confirmOrder(order){
+    var list=loadOrders();
+    for(var i=0;i<list.length;i++) if(list[i].id===order.id){ list[i].status="confirmed"; break; }
+    saveOrders(list);
+    updateStatusBubble(order.id, "confirmed");
+    if(order.delivery===false){
+      buyerMessage("Курьер несёт заказ — ждём тебя на самовывоз 🚶");
+    } else {
+      buyerMessage("Курьер уже несёт его к тебе 🛵 Ожидай.");
+    }
+    renderOrders();
+  }
+
+  // заказ прибыл — доставляем финальное сообщение покупателю
+  function arriveOrder(order){
+    var list=loadOrders();
+    for(var i=0;i<list.length;i++) if(list[i].id===order.id){ list[i].status="done"; break; }
+    saveOrders(list);
+    updateStatusBubble(order.id, "arrived");
+    buyerMessage("📦 Ваша посылка прибыла! Дом №"+order.address+", подъезд "+order.entrance+" — можно забирать. Спасибо, что выбрал Ёлочку! 🎄");
+    renderOrders();
+  }
+
+  function buyerMessage(txt){
+    var b=document.createElement("div"); b.className="bubble bot"; b.textContent=txt;
+    chat.appendChild(b); chat.scrollTop=chat.scrollHeight;
+  }
+
+  // статус-пузырь в чате покупателя: красный НЕПОДТВЕРЖДЁН -> зелёный ПОДТВЕРЖДЁН -> прибыл
+  function addStatusBubble(orderId){
+    var b=document.createElement("div");
+    b.className="bubble bot";
+    b.setAttribute("data-order", orderId);
+    b.setAttribute("data-status","new");
+    b.innerHTML='<span style="color:#b91c1c;font-weight:900;text-decoration:underline">НЕПОДТВЕРЖДЁН</span> — подождите, пока курьер подтвердит заказ.';
+    chat.appendChild(b); chat.scrollTop=chat.scrollHeight;
+    return b;
+  }
+  function updateStatusBubble(orderId, status, text){
+    var items=chat.querySelectorAll('[data-order="'+orderId+'"]');
+    items.forEach(function(el){
+      if(status==="confirmed"){
+        el.setAttribute("data-status","confirmed");
+        el.innerHTML='<span style="color:#16a34a;font-weight:900">✓ ПОДТВЕРЖДЁН</span> — курьер несёт заказ.';
+      } else if(status==="arrived"){
+        el.setAttribute("data-status","arrived");
+        el.innerHTML='<span style="color:#1d4ed8;font-weight:900">✓ ПРИНЕСЁН</span> — заказ доставлен, можно забирать. 🎄';
+      }
+      if(text) el.innerHTML += " " + text;
+    });
+  }
+
+  /* ---------- события ---------- */
+  document.getElementById("send").addEventListener("click",function(){ var v=field.value.trim(); if(!v)return; field.value=""; onMessage(v); });
+  field.addEventListener("keydown",function(e){ if(e.key==="Enter"){ var v=field.value.trim(); if(!v)return; field.value=""; onMessage(v); } });
+  document.getElementById("openOrdersBtn").addEventListener("click",openOrders);
+  document.getElementById("backToChat").addEventListener("click",backToChat);
+  document.getElementById("newOrderBtn").addEventListener("click",function(){ backToChat(); pendingConfirm=null; cart={}; address=null; entrance=null; bot("Новый заказ! Что закажем?"); showToys(); });
+
+  function cartItems(){ var a=[]; for(var k in cart) a.push(byId(k)); return a; }
+  function byId(id){ for(var i=0;i<toys.length;i++) if(toys[i].id===id) return toys[i]; return null; }
+  function total(){ var s=0; for(var k in cart) s+=PRICE; return s + (delivery?30:0); }
+
+  start();
+})();
+</script>
+</body>
+</html>
